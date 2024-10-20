@@ -1,5 +1,5 @@
-**Overview
-*The Financial Data Analysis System is a Python-based project designed to address the challenge of efficiently analyzing large
+Overview:
+The Financial Data Analysis System is a Python-based project designed to address the challenge of efficiently analyzing large
 financial datasets, such as stock prices, transaction logs, or cryptocurrency data. The system aims to provide rapid, scalable
 analysis of financial time series data, enabling users to identify trends, detect anomalies, and make informed decisions in the
 fast-paced world of finance. Key goals include efficient processing and sorting of large datasets, identification of trends and
@@ -10,4 +10,6 @@ Merge Sort for efficient data sorting (O(n log n) time complexity), a divide-and
 for finding periods of maximum gain or loss, and a divide-and-conquer Closest Pair of Points algorithm for anomaly detection.
 These algorithm choices reflect the need for both efficiency and accuracy when dealing with potentially massive financial 
 datasets, allowing the system to provide timely insights even as the volume of financial data continues to grow.
+graph TD
+
 
