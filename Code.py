@@ -1,11 +1,28 @@
 import numpy as np
+import yfinance as yf
+from datetime import datetime, timedelta
 from typing import List, Tuple
 
+
+def load_stock_data(symbol: str, period: str = '1y') -> List[Tuple[int, float]]:
+    # Download data
+    stock = yf.Ticker(symbol)
+    end_date = datetime.now()
+    start_date = end_date - timedelta(days=365)  # For 1 year of data
+    data = stock.history(start=start_date, end=end_date)
+
+    # Format data as list of (timestamp, price) tuples
+    formatted_data = [(int(date.timestamp()), float(row['Close']))
+                      for date, row in data.iterrows()]
+
+    return formatted_data
+
+
 class FinancialAnalysisSystem:
-    def __init__(self, data: List[Tuple[float, float]]):
+    def __init__(self, data: List[Tuple[int, float]]):
         self.data = data  # List of tuples (timestamp, price)
 
-    def merge_sort(self, arr: List[Tuple[float, float]]) -> List[Tuple[float, float]]:
+    def merge_sort(self, arr: List[Tuple[int, float]]) -> List[Tuple[int, float]]:
         if len(arr) <= 1:
             return arr
         mid = len(arr) // 2
@@ -13,7 +30,7 @@ class FinancialAnalysisSystem:
         right = self.merge_sort(arr[mid:])
         return self.merge(left, right)
 
-    def merge(self, left: List[Tuple[float, float]], right: List[Tuple[float, float]]) -> List[Tuple[float, float]]:
+    def merge(self, left: List[Tuple[int, float]], right: List[Tuple[int, float]]) -> List[Tuple[int, float]]:
         result = []
         i = j = 0
         while i < len(left) and j < len(right):
@@ -67,11 +84,12 @@ class FinancialAnalysisSystem:
 
         return max_subarray_recursive(prices, 0, len(prices) - 1)
 
-    def closest_pair(self, points: List[Tuple[float, float]]) -> Tuple[Tuple[float, float], Tuple[float, float], float]:
-        def distance(p1: Tuple[float, float], p2: Tuple[float, float]) -> float:
-            return np.sqrt((p1[0] - p2[0])**2 + (p1[1] - p2[1])**2)
+    def closest_pair(self, points: List[Tuple[int, float]]) -> Tuple[Tuple[int, float], Tuple[int, float], float]:
+        def distance(p1: Tuple[int, float], p2: Tuple[int, float]) -> float:
+            return np.sqrt((p1[0] - p2[0]) ** 2 + (p1[1] - p2[1]) ** 2)
 
-        def closest_pair_recursive(points_x: List[Tuple[float, float]], points_y: List[Tuple[float, float]]) -> Tuple[Tuple[float, float], Tuple[float, float], float]:
+        def closest_pair_recursive(points_x: List[Tuple[int, float]], points_y: List[Tuple[int, float]]) -> Tuple[
+            Tuple[int, float], Tuple[int, float], float]:
             n = len(points_x)
             if n <= 3:
                 return min(((points_x[i], points_x[j], distance(points_x[i], points_x[j]))
@@ -103,20 +121,20 @@ class FinancialAnalysisSystem:
         points_y = sorted(points, key=lambda p: p[1])
         return closest_pair_recursive(points_x, points_y)
 
-    def analyze(self):
+    def analyze(self) -> dict:
         # Step 1: Sort the data
         sorted_data = self.merge_sort(self.data)
         prices = [price for _, price in sorted_data]
 
         # Step 2: Find period of maximum gain
-        start, end, max_gain = self.max_subarray([prices[i+1] - prices[i] for i in range(len(prices)-1)])
-        
+        start, end, max_gain = self.max_subarray([prices[i + 1] - prices[i] for i in range(len(prices) - 1)])
+
         # Step 3: Detect anomalies
         anomaly_pair = self.closest_pair(self.data)
 
         # Step 4: Generate report
         report = {
-            "max_gain_period": (sorted_data[start][0], sorted_data[end+1][0]),
+            "max_gain_period": (sorted_data[start][0], sorted_data[end + 1][0]),
             "max_gain": max_gain,
             "anomaly": {
                 "points": (anomaly_pair[0], anomaly_pair[1]),
@@ -126,16 +144,26 @@ class FinancialAnalysisSystem:
 
         return report
 
+
 # Example usage
 if __name__ == "__main__":
-    # Sample data: List of (timestamp, price) tuples
-    data = [(1, 100), (2, 102), (3, 98), (4, 103), (5, 105), (6, 101), (7, 99)]
-    
-    fas = FinancialAnalysisSystem(data)
+    # Load real stock data
+    apple_data = load_stock_data('AAPL')
+
+    # Create an instance of FinancialAnalysisSystem
+    fas = FinancialAnalysisSystem(apple_data)
+
+    # Perform analysis
     analysis_report = fas.analyze()
-    
+
+    # Print results
     print("Financial Analysis Report:")
-    print(f"Period of Maximum Gain: {analysis_report['max_gain_period']}")
-    print(f"Maximum Gain: {analysis_report['max_gain']}")
-    print(f"Anomaly Detected: {analysis_report['anomaly']['points']}")
-    print(f"Anomaly Distance: {analysis_report['anomaly']['distance']}")
+    print(
+        f"Period of Maximum Gain: {datetime.fromtimestamp(analysis_report['max_gain_period'][0])} to {datetime.fromtimestamp(analysis_report['max_gain_period'][1])}")
+    print(f"Maximum Gain: ${analysis_report['max_gain']:.2f}")
+    print(f"Anomaly Detected between:")
+    print(
+        f"  Point 1: {datetime.fromtimestamp(analysis_report['anomaly']['points'][0][0])}, ${analysis_report['anomaly']['points'][0][1]:.2f}")
+    print(
+        f"  Point 2: {datetime.fromtimestamp(analysis_report['anomaly']['points'][1][0])}, ${analysis_report['anomaly']['points'][1][1]:.2f}")
+    print(f"Anomaly Distance: {analysis_report['anomaly']['distance']:.2f}")
